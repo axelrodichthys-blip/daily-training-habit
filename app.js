@@ -14,9 +14,10 @@ const PRESET_ROUTINES = [
     when: "night",
     desc: "1日の緊張をほぐして寝つきを良く",
     steps: [
-      { name: "猫のポーズ", emoji: "🐱", sec: 240, desc: "四つ這いで、息を吸って背中を反らし、吐いて丸める。背骨を1つずつ動かすイメージでゆっくり繰り返す" },
-      { name: "寝たまま腰ひねり", emoji: "🔄", sec: 240, desc: "仰向けで両膝を立て、左右にゆっくり倒す。肩は床につけたまま。腰とお尻がじんわり伸びる" },
-      { name: "ストレッチポールで胸開き", emoji: "🪵", sec: 240, desc: "ポールに背骨を縦に乗せて仰向け。両腕を横に広げ、胸と肩をゆっくり開く。ポールが無ければ丸めたバスタオルでもOK" },
+      { name: "猫のポーズ", emoji: "🐱", sec: 180, desc: "四つ這いで、息を吸って背中を反らし、吐いて丸める。背骨を1つずつ動かすイメージでゆっくり繰り返す" },
+      { name: "肩・肩甲骨ほぐし", emoji: "🙆", sec: 180, desc: "肩を大きく回す（前回し→後ろ回し）。次に両肩をすくめて3秒キープ、ストンと落とす。最後に肩甲骨を中央へ寄せる" },
+      { name: "寝たまま腰ひねり", emoji: "🔄", sec: 180, desc: "仰向けで両膝を立て、左右にゆっくり倒す。肩は床につけたまま。腰とお尻がじんわり伸びる" },
+      { name: "ストレッチポールで胸開き", emoji: "🪵", sec: 180, desc: "ポールに背骨を縦に乗せて仰向け。両腕を横に広げ、胸と肩をゆっくり開く。ポールが無ければ丸めたバスタオルでもOK" },
       { name: "深呼吸でおやすみ", emoji: "😮‍💨", sec: 180, desc: "仰向けで全身の力を抜き、鼻から4秒吸って口から6秒かけて吐く。眠りに入る準備をする" },
     ],
   },
@@ -267,9 +268,30 @@ function exitPlayer() {
 
 /* ---------- 効果音（軽いビープ） ---------- */
 let audioCtx = null;
+let audioUnlocked = false;
+// AudioContextを用意し、必ずresume（iOSは操作時にresumeしないと無音）
+function ensureAudio() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+  } catch {}
+  return audioCtx;
+}
+// 最初のタップで音声を解錠（iOSの自動再生制限対策）
+function unlockAudio() {
+  const ctx = ensureAudio();
+  if (!ctx || audioUnlocked) return;
+  try {
+    const buf = ctx.createBuffer(1, 1, 22050);
+    const src = ctx.createBufferSource();
+    src.buffer = buf; src.connect(ctx.destination); src.start(0);
+    audioUnlocked = true;
+  } catch {}
+}
 function beep(soft) {
   try {
-    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    audioCtx = ensureAudio();
+    if (!audioCtx) return;
     const o = audioCtx.createOscillator(), g = audioCtx.createGain();
     o.frequency.value = soft ? 660 : 880;
     g.gain.value = soft ? 0.04 : 0.09;
@@ -286,35 +308,36 @@ function celebrate() {
 let musicNodes = null;
 function startMusic() {
   if (!settings.music || musicNodes) return;
+  const ctx = ensureAudio();
+  if (!ctx) return;
   try {
-    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === "suspended") audioCtx.resume();
-    const now = audioCtx.currentTime;
+    const now = ctx.currentTime;
 
-    const master = audioCtx.createGain();
+    const master = ctx.createGain();
     master.gain.setValueAtTime(0.0001, now);
-    master.gain.linearRampToValueAtTime(0.06, now + 4); // ふわっとフェードイン
+    master.gain.linearRampToValueAtTime(0.16, now + 3); // ふわっとフェードイン（スマホ向けに音量UP）
 
-    const filter = audioCtx.createBiquadFilter();
+    // スマホの小型スピーカーでも聞こえるよう、低音は控えめ・中音域中心に
+    const filter = ctx.createBiquadFilter();
     filter.type = "lowpass";
-    filter.frequency.value = 650; // 角を丸めて柔らかく
+    filter.frequency.value = 2200;
     filter.connect(master);
-    master.connect(audioCtx.destination);
+    master.connect(ctx.destination);
 
-    // Cメジャー系の落ち着いた和音（C3 G3 C4 E4）
-    const freqs = [130.81, 196.00, 261.63, 329.63];
+    // Cメジャー系の落ち着いた和音を中音域で（C4 E4 G4 C5）→スマホでも明瞭
+    const freqs = [261.63, 329.63, 392.00, 523.25];
     const nodes = [];
     freqs.forEach((f, i) => {
-      const o = audioCtx.createOscillator();
+      const o = ctx.createOscillator();
       o.type = i % 2 ? "sine" : "triangle";
       o.frequency.value = f;
-      const g = audioCtx.createGain();
-      g.gain.value = 0.22 - i * 0.02;
+      const g = ctx.createGain();
+      g.gain.value = 0.16 - i * 0.02;
       // 呼吸のようなゆっくりした音量の揺らぎ
-      const lfo = audioCtx.createOscillator();
+      const lfo = ctx.createOscillator();
       lfo.frequency.value = 0.06 + i * 0.013;
-      const lfoGain = audioCtx.createGain();
-      lfoGain.gain.value = 0.1;
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.value = 0.06;
       lfo.connect(lfoGain); lfoGain.connect(g.gain);
       o.connect(g); g.connect(filter);
       o.start(now); lfo.start(now);
@@ -405,6 +428,10 @@ function switchView(name) {
    イベント結線 & 初期化
    ============================================================ */
 function init() {
+  // 最初のタップで音声を解錠（iOS/モバイルの自動再生制限対策）
+  document.addEventListener("pointerdown", unlockAudio, { passive: true });
+  document.addEventListener("touchstart", unlockAudio, { passive: true });
+
   // ナビ
   $$(".nav button").forEach(b => b.onclick = () => switchView(b.dataset.view));
 

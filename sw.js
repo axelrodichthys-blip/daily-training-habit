@@ -1,5 +1,5 @@
 /* シンプルなオフラインキャッシュ。オフラインでもアプリが開けるように。 */
-const CACHE = "training-habit-v2";
+const CACHE = "training-habit-v3";
 const ASSETS = [
   "./",
   "./index.html",
