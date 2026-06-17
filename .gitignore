@@ -1,0 +1,6 @@
+# ローカル開発用（公開不要）
+.claude/
+server.ps1
+*-backup-*.json
+.DS_Store
+Thumbs.db

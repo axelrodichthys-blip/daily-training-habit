@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0f1422">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="毎日トレ">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <link rel="icon" href="icons/icon.svg">
+  <link rel="stylesheet" href="style.css">
+  <title>毎日トレーニング習慣</title>
+</head>
+<body>
+  <div id="app">
+    <header class="app-header">
+      <h1>毎日トレーニング</h1>
+      <span class="date" id="date-label"></span>
+    </header>
+
+    <!-- ============ 今日 ============ -->
+    <section class="view active" id="view-today">
+      <div class="streak">
+        <div class="flame" id="streak-flame">✨</div>
+        <div>
+          <div class="num"><span id="streak-num">0</span><small>日連続</small></div>
+          <div class="label" id="today-status">今日はまだ</div>
+        </div>
+        <div class="right">
+          <div class="big"><span id="total-days">0</span>日</div>
+          <div class="label">通算</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>今日のメニューを選ぶ</h2>
+        <div id="routine-list"></div>
+        <p class="note">💡 1種目でもやれば「達成」として記録されます。<b>少しでもOK</b>。続けることが目標です。</p>
+      </div>
+    </section>
+
+    <!-- ============ 履歴 ============ -->
+    <section class="view" id="view-history">
+      <div class="card">
+        <div class="cal-head">
+          <button id="cal-prev">‹</button>
+          <strong id="cal-title"></strong>
+          <button id="cal-next">›</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <p class="note">今月の達成：<b><span id="month-count">0</span>日</b>　緑のマスがトレーニングした日です。</p>
+      </div>
+    </section>
+
+    <!-- ============ 設定 ============ -->
+    <section class="view" id="view-settings">
+      <div class="card">
+        <h2>リマインド</h2>
+        <div class="field">
+          <div class="lbl">通知する<small>アプリを開いている間に有効</small></div>
+          <label class="switch"><input type="checkbox" id="set-notify"><span class="slider"></span></label>
+        </div>
+        <div class="field">
+          <div class="lbl">時刻</div>
+          <input type="time" id="set-time">
+        </div>
+        <div class="field">
+          <div class="lbl">通知テスト</div>
+          <button class="btn ghost sm" id="test-notify">送ってみる</button>
+        </div>
+        <p class="note">📱 <b>確実に毎日リマインドしたい場合</b>は、iPhone/Androidの<b>「時計アプリのアラーム」や「リマインダー」</b>で同じ時刻に1つ通知をセットしておくのが一番確実です。鳴ったらこのアプリを開いて始めましょう。（Webアプリはアプリを閉じている間の時刻ぴったり通知が苦手なため）</p>
+        <p class="note" id="notify-state"></p>
+      </div>
+
+      <div class="card">
+        <h2>メニュー</h2>
+        <div class="field">
+          <div class="lbl">最初に表示するメニュー</div>
+          <select id="set-default"></select>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>データ</h2>
+        <div class="row" style="margin-bottom:6px">
+          <button class="btn ghost sm" id="export-data">バックアップ書き出し</button>
+          <button class="btn danger sm" id="reset-data">記録をリセット</button>
+        </div>
+        <p class="note">記録はこの端末の中だけに保存されます（外部送信なし）。機種変更前にバックアップを書き出せます。</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ 下部ナビ ============ -->
+  <nav class="nav">
+    <button data-view="today" class="active"><span class="ic">🏠</span>今日</button>
+    <button data-view="history"><span class="ic">📅</span>履歴</button>
+    <button data-view="settings"><span class="ic">⚙️</span>設定</button>
+  </nav>
+
+  <!-- ============ プレイヤー（全画面） ============ -->
+  <div class="player" id="player">
+    <div class="top">
+      <span class="step-count" id="p-count"></span>
+      <button class="close" id="p-close">✕</button>
+    </div>
+    <div class="progress-bar"><i id="p-progress"></i></div>
+    <div class="center">
+      <div class="ex-emoji" id="p-emoji"></div>
+      <div class="ex-name" id="p-name"></div>
+      <div class="ex-desc" id="p-desc"></div>
+      <div class="timer" id="p-timer">00:00</div>
+      <div class="next" id="p-next"></div>
+    </div>
+    <div class="controls">
+      <button class="side" id="p-prev">◀ 前へ</button>
+      <button class="big-btn" id="p-play">一時停止</button>
+      <button class="side" id="p-skip">次へ ▶</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>

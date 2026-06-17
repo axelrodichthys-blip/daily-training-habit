@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f7cff"/>
+      <stop offset="1" stop-color="#22c1a6"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#g)"/>
+  <g fill="#fff">
+    <!-- dumbbell -->
+    <rect x="120" y="232" width="272" height="48" rx="24"/>
+    <rect x="92" y="196" width="56" height="120" rx="24"/>
+    <rect x="364" y="196" width="56" height="120" rx="24"/>
+    <rect x="64" y="220" width="40" height="72" rx="18"/>
+    <rect x="408" y="220" width="40" height="72" rx="18"/>
+  </g>
+  <!-- check -->
+  <path d="M196 360 l44 44 l84 -96" fill="none" stroke="#fff" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+</svg>

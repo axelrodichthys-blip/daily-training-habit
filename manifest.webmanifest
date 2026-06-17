@@ -1,0 +1,15 @@
+{
+  "name": "毎日トレーニング習慣",
+  "short_name": "毎日トレ",
+  "description": "決めた時間に少しでもストレッチ・筋トレを続けるための習慣化アプリ",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1422",
+  "theme_color": "#0f1422",
+  "lang": "ja",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
