@@ -11,64 +11,13 @@ const PRESET_ROUTINES = [
     id: "bedtime",
     name: "寝る前ストレッチ",
     emoji: "🌙",
-    when: "night",          // 時間帯のおすすめ判定用
+    when: "night",
     desc: "1日の緊張をほぐして寝つきを良く",
     steps: [
-      { name: "深呼吸でリラックス", emoji: "🫁", sec: 30, desc: "鼻から4秒吸って、口から6秒かけて吐く" },
-      { name: "首をゆっくり回す", emoji: "🙆", sec: 40, desc: "右回り・左回り。肩の力を抜いて" },
-      { name: "肩を大きく回す", emoji: "💪", sec: 40, desc: "前回し・後ろ回し。肩甲骨を動かす意識で" },
-      { name: "前屈で背中を伸ばす", emoji: "🧎", sec: 45, desc: "息を吐きながら無理なく前へ。膝は軽く曲げてOK" },
-      { name: "太もも裏ストレッチ(右)", emoji: "🦵", sec: 40, desc: "脚を伸ばしてつま先に手を。痛気持ちいい所で止める" },
-      { name: "太もも裏ストレッチ(左)", emoji: "🦵", sec: 40, desc: "反対側も同じように" },
-      { name: "お尻・腰のひねり", emoji: "🔄", sec: 60, desc: "仰向けで膝を倒す。左右ゆっくり" },
-      { name: "全身脱力", emoji: "😌", sec: 45, desc: "仰向けで力を抜き、ゆっくり呼吸" },
-    ],
-  },
-  {
-    id: "morning",
-    name: "朝の目覚め筋トレ",
-    emoji: "☀️",
-    when: "morning",
-    desc: "軽く動いて体にスイッチを入れる",
-    steps: [
-      { name: "その場で伸び", emoji: "🙌", sec: 20, desc: "両手を上げて全身をぐーっと伸ばす" },
-      { name: "スクワット", emoji: "🏋️", sec: 40, desc: "膝がつま先より前に出すぎないよう、ゆっくり10回目安" },
-      { name: "休憩", emoji: "💧", sec: 15, desc: "呼吸を整える", rest: true },
-      { name: "もも上げ足踏み", emoji: "🚶", sec: 40, desc: "腿を高く上げてその場で足踏み" },
-      { name: "腕立て(膝つきOK)", emoji: "💪", sec: 40, desc: "きつければ膝をついて。無理なく回数を" },
-      { name: "休憩", emoji: "💧", sec: 15, desc: "呼吸を整える", rest: true },
-      { name: "プランク", emoji: "🧱", sec: 30, desc: "肘とつま先で体を一直線に。お腹に力" },
-      { name: "深呼吸でクールダウン", emoji: "🫁", sec: 20, desc: "ゆっくり呼吸して終了" },
-    ],
-  },
-  {
-    id: "neck",
-    name: "肩こり・首ほぐし",
-    emoji: "💆",
-    when: "any",
-    desc: "デスクワークの合間に。座ったままOK",
-    steps: [
-      { name: "首を前後に倒す", emoji: "🙇", sec: 30, desc: "ゆっくり。倒した所で軽く止める" },
-      { name: "首を左右に倒す", emoji: "↔️", sec: 30, desc: "耳を肩に近づけるイメージ" },
-      { name: "肩すくめ→脱力", emoji: "🤷", sec: 30, desc: "肩を上げて3秒、ストンと落とす" },
-      { name: "肩甲骨よせ", emoji: "🦅", sec: 40, desc: "胸を開いて肩甲骨を中央に寄せる" },
-      { name: "腕を前で伸ばす", emoji: "🤲", sec: 30, desc: "手を組んで前へ。背中を丸める" },
-      { name: "脇腹を伸ばす", emoji: "🙆", sec: 40, desc: "片手を上げて体を横に倒す。左右" },
-    ],
-  },
-  {
-    id: "lowerback",
-    name: "腰・お尻ストレッチ",
-    emoji: "🦴",
-    when: "any",
-    desc: "腰まわりをゆるめて軽くする",
-    steps: [
-      { name: "猫のポーズ", emoji: "🐱", sec: 45, desc: "四つ這いで背中を丸める・反らすを繰り返す" },
-      { name: "お尻ストレッチ(右)", emoji: "🍑", sec: 40, desc: "仰向けで足を組み、太ももを抱える" },
-      { name: "お尻ストレッチ(左)", emoji: "🍑", sec: 40, desc: "反対側も同じように" },
-      { name: "腰ひねり(右)", emoji: "🔄", sec: 40, desc: "仰向けで膝を片側へ倒す" },
-      { name: "腰ひねり(左)", emoji: "🔄", sec: 40, desc: "反対側へ" },
-      { name: "膝を抱えて丸まる", emoji: "🫂", sec: 45, desc: "両膝を抱えて背中を伸ばす" },
+      { name: "猫のポーズ", emoji: "🐱", sec: 240, desc: "四つ這いで、息を吸って背中を反らし、吐いて丸める。背骨を1つずつ動かすイメージでゆっくり繰り返す" },
+      { name: "寝たまま腰ひねり", emoji: "🔄", sec: 240, desc: "仰向けで両膝を立て、左右にゆっくり倒す。肩は床につけたまま。腰とお尻がじんわり伸びる" },
+      { name: "ストレッチポールで胸開き", emoji: "🪵", sec: 240, desc: "ポールに背骨を縦に乗せて仰向け。両腕を横に広げ、胸と肩をゆっくり開く。ポールが無ければ丸めたバスタオルでもOK" },
+      { name: "深呼吸でおやすみ", emoji: "😮‍💨", sec: 180, desc: "仰向けで全身の力を抜き、鼻から4秒吸って口から6秒かけて吐く。眠りに入る準備をする" },
     ],
   },
 ];
@@ -88,7 +37,9 @@ let settings = store.get(LS.settings, {
   reminderTime: "22:00",
   notify: false,
   defaultRoutine: "auto",
+  music: true,
 });
+if (settings.music === undefined) settings.music = true; // 既存ユーザーは音楽ONをデフォルトに
 let log = store.get(LS.log, {});
 let customRoutines = store.get(LS.custom, []);
 
@@ -118,11 +69,13 @@ function totalDays() { return Object.keys(log).length; }
 
 /* ---------- おすすめルーティン（時間帯で） ---------- */
 function suggestedRoutineId() {
-  if (settings.defaultRoutine && settings.defaultRoutine !== "auto") return settings.defaultRoutine;
-  const h = new Date().getHours();
-  if (h >= 20 || h < 4) return "bedtime";
-  if (h >= 4 && h < 10) return "morning";
-  return "neck";
+  let id = (settings.defaultRoutine && settings.defaultRoutine !== "auto") ? settings.defaultRoutine : null;
+  if (!id) {
+    const h = new Date().getHours();
+    id = (h >= 20 || h < 4) ? "bedtime" : (h < 10 ? "morning" : "neck");
+  }
+  // 該当ルーティンが無ければ先頭にフォールバック
+  return routineById(id) ? id : (allRoutines()[0] && allRoutines()[0].id);
 }
 
 /* ============================================================
@@ -196,6 +149,7 @@ function renderHistory() {
 function renderSettings() {
   $("#set-time").value = settings.reminderTime;
   $("#set-notify").checked = settings.notify;
+  $("#set-music").checked = settings.music;
   const sel = $("#set-default");
   sel.innerHTML = `<option value="auto">時間帯でおすすめ（自動）</option>` +
     allRoutines().map(r => `<option value="${r.id}">${r.emoji} ${r.name}</option>`).join("");
@@ -218,8 +172,10 @@ function startPlayer(routineId) {
   if (!r) return;
   player = { routine: r, idx: 0, remain: r.steps[0].sec, timer: null, paused: false, doneSteps: 0 };
   $("#player").classList.add("active");
+  updateMusicBtn();
   loadStep();
   resumeTimer();
+  startMusic();
 }
 function loadStep() {
   const r = player.routine, s = r.steps[player.idx];
@@ -277,9 +233,11 @@ function prevStep() {
 function togglePause() {
   player.paused = !player.paused;
   $("#p-play").textContent = player.paused ? "再開" : "一時停止";
+  if (player.paused) stopMusic(); else startMusic();
 }
 function finishPlayer(partial) {
   clearInterval(player.timer);
+  stopMusic();
   const r = player.routine;
   // 1種目でも進めていれば達成として記録（「少しでもやる」を尊重）
   const done = partial ? player.doneSteps : r.steps.length;
@@ -299,6 +257,7 @@ function finishPlayer(partial) {
 function exitPlayer() {
   // 途中終了：進んだ分を記録するか確認
   clearInterval(player.timer);
+  stopMusic();
   if (player.doneSteps > 0 || player.idx > 0) {
     finishPlayer(true);
   } else {
@@ -320,6 +279,73 @@ function beep(soft) {
 }
 function celebrate() {
   if (navigator.vibrate) navigator.vibrate([60, 40, 60, 40, 120]);
+}
+
+/* ---------- リラックス音楽（ブラウザ内で生成。著作権フリー・通信不要） ----------
+   穏やかな和音パッドを呼吸のようにゆっくり揺らす環境音。 */
+let musicNodes = null;
+function startMusic() {
+  if (!settings.music || musicNodes) return;
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const now = audioCtx.currentTime;
+
+    const master = audioCtx.createGain();
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.linearRampToValueAtTime(0.06, now + 4); // ふわっとフェードイン
+
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = 650; // 角を丸めて柔らかく
+    filter.connect(master);
+    master.connect(audioCtx.destination);
+
+    // Cメジャー系の落ち着いた和音（C3 G3 C4 E4）
+    const freqs = [130.81, 196.00, 261.63, 329.63];
+    const nodes = [];
+    freqs.forEach((f, i) => {
+      const o = audioCtx.createOscillator();
+      o.type = i % 2 ? "sine" : "triangle";
+      o.frequency.value = f;
+      const g = audioCtx.createGain();
+      g.gain.value = 0.22 - i * 0.02;
+      // 呼吸のようなゆっくりした音量の揺らぎ
+      const lfo = audioCtx.createOscillator();
+      lfo.frequency.value = 0.06 + i * 0.013;
+      const lfoGain = audioCtx.createGain();
+      lfoGain.gain.value = 0.1;
+      lfo.connect(lfoGain); lfoGain.connect(g.gain);
+      o.connect(g); g.connect(filter);
+      o.start(now); lfo.start(now);
+      nodes.push(o, lfo);
+    });
+    musicNodes = { master, nodes };
+  } catch {}
+}
+function stopMusic() {
+  if (!musicNodes) return;
+  try {
+    const { master, nodes } = musicNodes;
+    const now = audioCtx.currentTime;
+    master.gain.cancelScheduledValues(now);
+    master.gain.setValueAtTime(master.gain.value, now);
+    master.gain.linearRampToValueAtTime(0.0001, now + 1.2); // ふわっとフェードアウト
+    nodes.forEach(n => { try { n.stop(now + 1.4); } catch {} });
+  } catch {}
+  musicNodes = null;
+}
+function updateMusicBtn() {
+  const b = $("#p-music");
+  if (b) b.textContent = settings.music ? "🎵" : "🔇";
+}
+function toggleMusic() {
+  settings.music = !settings.music;
+  store.set(LS.settings, settings);
+  updateMusicBtn();
+  if ($("#set-music")) $("#set-music").checked = settings.music;
+  if (settings.music && !player.paused && $("#player").classList.contains("active")) startMusic();
+  else stopMusic();
 }
 
 /* ---------- トースト ---------- */
@@ -387,6 +413,7 @@ function init() {
   $("#p-play").onclick = () => { if (audioCtx && audioCtx.state === "suspended") audioCtx.resume(); togglePause(); };
   $("#p-prev").onclick = prevStep;
   $("#p-skip").onclick = () => nextStep(true);
+  $("#p-music").onclick = toggleMusic;
 
   // 履歴の月送り
   $("#cal-prev").onclick = () => { calMonth.setMonth(calMonth.getMonth() - 1); renderHistory(); };
@@ -395,6 +422,7 @@ function init() {
   // 設定
   $("#set-time").onchange = e => { settings.reminderTime = e.target.value; store.set(LS.settings, settings); scheduleReminder(); showToast("リマインド時刻を保存"); };
   $("#set-default").onchange = e => { settings.defaultRoutine = e.target.value; store.set(LS.settings, settings); };
+  $("#set-music").onchange = e => { settings.music = e.target.checked; store.set(LS.settings, settings); updateMusicBtn(); if (!settings.music) stopMusic(); showToast(settings.music ? "音楽をオンにしました" : "音楽をオフにしました"); };
   $("#set-notify").onchange = async e => {
     if (e.target.checked) {
       const ok = await requestNotify();

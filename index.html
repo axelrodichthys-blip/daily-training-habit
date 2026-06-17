@@ -80,6 +80,10 @@
           <div class="lbl">最初に表示するメニュー</div>
           <select id="set-default"></select>
         </div>
+        <div class="field">
+          <div class="lbl">リラックス音楽<small>ストレッチ中に環境音を流す</small></div>
+          <label class="switch"><input type="checkbox" id="set-music"><span class="slider"></span></label>
+        </div>
       </div>
 
       <div class="card">
@@ -104,7 +108,10 @@
   <div class="player" id="player">
     <div class="top">
       <span class="step-count" id="p-count"></span>
-      <button class="close" id="p-close">✕</button>
+      <div class="top-btns">
+        <button class="icon-btn" id="p-music" title="リラックス音楽 ON/OFF">🎵</button>
+        <button class="close" id="p-close" title="終了">✕</button>
+      </div>
     </div>
     <div class="progress-bar"><i id="p-progress"></i></div>
     <div class="center">
