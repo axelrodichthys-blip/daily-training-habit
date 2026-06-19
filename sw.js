@@ -1,5 +1,5 @@
 /* シンプルなオフラインキャッシュ。オフラインでもアプリが開けるように。 */
-const CACHE = "nightore-v5";
+const CACHE = "nightore-v6";
 const ASSETS = [
   "./",
   "./index.html",
