@@ -1,7 +1,7 @@
 {
-  "name": "毎日トレーニング習慣",
-  "short_name": "毎日トレ",
-  "description": "決めた時間に少しでもストレッチ・筋トレを続けるための習慣化アプリ",
+  "name": "ナイトレ🌙",
+  "short_name": "ナイトレ",
+  "description": "寝る前に少しでもストレッチを続けるための習慣化アプリ",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -10,6 +10,8 @@
   "theme_color": "#0f1422",
   "lang": "ja",
   "icons": [
-    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

@@ -6,17 +6,17 @@
   <meta name="theme-color" content="#0f1422">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="毎日トレ">
+  <meta name="apple-mobile-web-app-title" content="ナイトレ">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="icons/icon.svg">
-  <link rel="icon" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="style.css">
-  <title>毎日トレーニング習慣</title>
+  <title>ナイトレ🌙</title>
 </head>
 <body>
   <div id="app">
     <header class="app-header">
-      <h1>毎日トレーニング</h1>
+      <h1>ナイトレ🌙</h1>
       <span class="date" id="date-label"></span>
     </header>
 
@@ -75,14 +75,30 @@
       </div>
 
       <div class="card">
-        <h2>メニュー</h2>
+        <h2>BGM（ストレッチ中の音楽）</h2>
         <div class="field">
-          <div class="lbl">最初に表示するメニュー</div>
-          <select id="set-default"></select>
+          <div class="lbl">BGMを流す<small>開始で再生・終了でフェードアウト</small></div>
+          <label class="switch"><input type="checkbox" id="set-music"><span class="slider"></span></label>
         </div>
         <div class="field">
-          <div class="lbl">リラックス音楽<small>ストレッチ中に環境音を流す</small></div>
-          <label class="switch"><input type="checkbox" id="set-music"><span class="slider"></span></label>
+          <div class="lbl">使う曲</div>
+          <div class="seg">
+            <button class="seg-btn" id="bgm-src-default">デフォルト2曲</button>
+            <button class="seg-btn" id="bgm-src-custom">自分のリスト</button>
+          </div>
+        </div>
+
+        <div id="bgm-default-info" class="note">
+          🎵 デフォルト：<b>Soft Focus 1 / Soft Focus 2</b> を順に再生。15分に満たない分は1曲目から繰り返します。
+        </div>
+
+        <div id="bgm-custom-panel" style="display:none">
+          <div id="bgm-list"></div>
+          <div id="bgm-empty" class="empty-hint">まだ曲がありません。下のボタンからスマホの曲を追加できます。</div>
+          <input type="file" id="bgm-file" accept="audio/*" multiple hidden>
+          <button class="btn ghost sm" id="bgm-add" style="margin-top:8px">＋ スマホから曲を追加</button>
+          <span class="bgm-count"><span id="bgm-count">0</span> / 10 曲</span>
+          <p class="note">左の <b>⠿</b> を押したまま上下にドラッグで並び替え。上から順に再生し、足りない分は1曲目から繰り返して15分を埋めます（1曲だけならその曲をリピート）。</p>
         </div>
       </div>
 
@@ -109,7 +125,7 @@
     <div class="top">
       <span class="step-count" id="p-count"></span>
       <div class="top-btns">
-        <button class="icon-btn" id="p-music" title="リラックス音楽 ON/OFF">🎵</button>
+        <button class="icon-btn" id="p-music" title="BGM ON/OFF">🎵</button>
         <button class="close" id="p-close" title="終了">✕</button>
       </div>
     </div>
@@ -125,6 +141,16 @@
       <button class="side" id="p-prev">◀ 前へ</button>
       <button class="big-btn" id="p-play">一時停止</button>
       <button class="side" id="p-skip">次へ ▶</button>
+    </div>
+  </div>
+
+  <!-- ============ リワード（達成）ポップアップ ============ -->
+  <div class="modal" id="reward-modal">
+    <div class="modal-box">
+      <div class="modal-emoji" id="reward-emoji">👑</div>
+      <div class="modal-title" id="reward-title"></div>
+      <div class="modal-body" id="reward-body"></div>
+      <button class="btn" id="reward-ok">OK</button>
     </div>
   </div>
 

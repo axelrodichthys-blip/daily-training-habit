@@ -1,13 +1,17 @@
 /* シンプルなオフラインキャッシュ。オフラインでもアプリが開けるように。 */
-const CACHE = "training-habit-v3";
+const CACHE = "nightore-v4";
 const ASSETS = [
   "./",
   "./index.html",
   "./style.css",
   "./app.js",
   "./manifest.webmanifest",
-  "./icons/icon.svg",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png",
+  "./icons/icon-512-maskable.png",
+  "./icons/icon-180.png",
 ];
+// BGMのmp3は大きいため事前キャッシュせず、初回再生時にfetchハンドラで自動キャッシュする。
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));

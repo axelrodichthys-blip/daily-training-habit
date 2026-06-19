@@ -28,6 +28,7 @@ const LS = {
   log: "ht_log_v1",          // { "2026-06-17": { routineId, doneSteps, total, ts } }
   settings: "ht_settings_v1",
   custom: "ht_custom_v1",    // ユーザー追加ルーティン
+  bgm: "ht_bgm_v1",          // 自分のBGMリストの並び順 [{id, name}]（曲データ本体はIndexedDB）
 };
 const store = {
   get(k, def) { try { return JSON.parse(localStorage.getItem(k)) ?? def; } catch { return def; } },
@@ -39,10 +40,13 @@ let settings = store.get(LS.settings, {
   notify: false,
   defaultRoutine: "auto",
   music: true,
+  bgmSource: "default",      // "default"（添付2曲）/ "custom"（自分のリスト）
 });
 if (settings.music === undefined) settings.music = true; // 既存ユーザーは音楽ONをデフォルトに
+if (!settings.bgmSource) settings.bgmSource = "default";
 let log = store.get(LS.log, {});
 let customRoutines = store.get(LS.custom, []);
+let bgmList = store.get(LS.bgm, []);   // [{id, name}] 並び順
 
 function allRoutines() { return [...PRESET_ROUTINES, ...customRoutines]; }
 function routineById(id) { return allRoutines().find(r => r.id === id); }
@@ -67,6 +71,26 @@ function computeStreak() {
   return streak;
 }
 function totalDays() { return Object.keys(log).length; }
+
+/* ---------- リワード（達成バッジ）：通算（加算式）でカウント ----------
+   実施した日を古い順に並べ、N日目（通算N日）が
+   7の倍数 / 30の倍数 / 50の倍数になった日にバッジを付与。 */
+function milestonesFor(n) {
+  const out = [];
+  if (n > 0 && n % 50 === 0) out.push({ tier: 50, emoji: "👑", title: `通算${n}日達成！`, sub: `${n}日の大台、本当におめでとうございます！🎉` });
+  if (n > 0 && n % 30 === 0) out.push({ tier: 30, emoji: "🏅", title: `通算${n}日達成！`, sub: `${Math.round(n / 30)}ヶ月ぶんの積み重ね！🎉` });
+  if (n > 0 && n % 7 === 0) out.push({ tier: 7, emoji: "🌟", title: `通算${n}日達成！`, sub: `${Math.round(n / 7)}週間ぶん継続中！🎉` });
+  return out; // tierが大きい順
+}
+// 実施日 → その日に獲得したリワード配列
+function computeRewards() {
+  const map = {};
+  Object.keys(log).sort().forEach((d, i) => {
+    const ms = milestonesFor(i + 1);
+    if (ms.length) map[d] = ms;
+  });
+  return map;
+}
 
 /* ---------- おすすめルーティン（時間帯で） ---------- */
 function suggestedRoutineId() {
@@ -132,13 +156,17 @@ function renderHistory() {
   const days = new Date(y, m + 1, 0).getDate();
   for (let i = 0; i < first; i++) { const c = document.createElement("div"); c.className = "cal-cell empty"; grid.appendChild(c); }
   const tk = todayKey();
+  const rewards = computeRewards();
   for (let d = 1; d <= days; d++) {
     const key = todayKey(new Date(y, m, d));
     const entry = log[key];
+    const rw = rewards[key]; // この日のリワード（あれば）
     const c = document.createElement("div");
-    c.className = "cal-cell" + (entry ? " has" : "") + (key === tk ? " today" : "");
+    c.className = "cal-cell" + (entry ? " has" : "") + (key === tk ? " today" : "") + (rw ? " reward-cell" : "");
     const r = entry ? routineById(entry.routineId) : null;
-    c.innerHTML = `${d}${entry ? `<span class="dot">${r ? r.emoji : "✓"}</span>` : ""}`;
+    const badge = rw ? `<span class="reward">${rw[0].emoji}</span>` : "";
+    c.innerHTML = `${d}${badge}${entry ? `<span class="dot">${r ? r.emoji : "✓"}</span>` : ""}`;
+    if (rw) c.onclick = () => showRewardModal(rw, key);
     grid.appendChild(c);
   }
   // 今月の達成数
@@ -151,11 +179,46 @@ function renderSettings() {
   $("#set-time").value = settings.reminderTime;
   $("#set-notify").checked = settings.notify;
   $("#set-music").checked = settings.music;
-  const sel = $("#set-default");
-  sel.innerHTML = `<option value="auto">時間帯でおすすめ（自動）</option>` +
-    allRoutines().map(r => `<option value="${r.id}">${r.emoji} ${r.name}</option>`).join("");
-  sel.value = settings.defaultRoutine;
+  renderBgmSettings();
   updateNotifyHint();
+}
+function renderBgmSettings() {
+  const isCustom = settings.bgmSource === "custom";
+  $("#bgm-src-default").classList.toggle("active", !isCustom);
+  $("#bgm-src-custom").classList.toggle("active", isCustom);
+  $("#bgm-default-info").style.display = isCustom ? "none" : "block";
+  $("#bgm-custom-panel").style.display = isCustom ? "block" : "none";
+  if (isCustom) renderBgmList();
+}
+function renderBgmList() {
+  const wrap = $("#bgm-list");
+  wrap.innerHTML = "";
+  bgmList.forEach((item, i) => {
+    const row = document.createElement("div");
+    row.className = "bgm-row";
+    row.dataset.id = item.id;
+    row.innerHTML = `
+      <span class="handle" title="ドラッグで並び替え">⠿</span>
+      <span class="idx">${i + 1}</span>
+      <span class="nm">${escapeHtml(item.name)}</span>
+      <button class="del" title="削除">🗑</button>`;
+    row.querySelector(".del").onclick = () => deleteBgm(item.id);
+    attachDragHandle(row);
+    wrap.appendChild(row);
+  });
+  $("#bgm-count").textContent = bgmList.length;
+  $("#bgm-empty").style.display = bgmList.length ? "none" : "block";
+}
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+/* ---------- リワード・ポップアップ ---------- */
+function showRewardModal(ms, dateKey) {
+  $("#reward-emoji").textContent = ms[0].emoji;
+  $("#reward-title").textContent = ms[0].title;
+  const dateNote = dateKey ? `<div class="line" style="opacity:.7;margin-top:8px">${dateKey.replace(/-/g, "/")} 達成</div>` : "";
+  $("#reward-body").innerHTML = ms.map(m => `<div class="line">${m.emoji} ${m.sub}</div>`).join("") + dateNote;
+  $("#reward-modal").classList.add("active");
+  celebrate();
 }
 function updateNotifyHint() {
   const perm = ("Notification" in window) ? Notification.permission : "unsupported";
@@ -176,7 +239,7 @@ function startPlayer(routineId) {
   updateMusicBtn();
   loadStep();
   resumeTimer();
-  startMusic();
+  startBGM();
 }
 function loadStep() {
   const r = player.routine, s = r.steps[player.idx];
@@ -234,12 +297,13 @@ function prevStep() {
 function togglePause() {
   player.paused = !player.paused;
   $("#p-play").textContent = player.paused ? "再開" : "一時停止";
-  if (player.paused) stopMusic(); else startMusic();
+  if (player.paused) pauseBGM(); else resumeBGM();
 }
 function finishPlayer(partial) {
   clearInterval(player.timer);
-  stopMusic();
+  stopBGM(); // 種目終了 → フェードアウトして停止
   const r = player.routine;
+  const wasNew = !log[todayKey()]; // 今日まだ未記録なら新規達成
   // 1種目でも進めていれば達成として記録（「少しでもやる」を尊重）
   const done = partial ? player.doneSteps : r.steps.length;
   if (done > 0) {
@@ -248,7 +312,11 @@ function finishPlayer(partial) {
   }
   $("#player").classList.remove("active");
   renderToday();
-  if (done >= r.steps.length) {
+  // 新規達成でリワード節目に到達したらお祝いポップアップ
+  const newMs = (wasNew && done > 0) ? milestonesFor(totalDays()) : [];
+  if (newMs.length) {
+    setTimeout(() => showRewardModal(newMs), 400);
+  } else if (done >= r.steps.length) {
     showToast("🎉 全部完了！おつかれさま");
     celebrate();
   } else if (done > 0) {
@@ -258,10 +326,10 @@ function finishPlayer(partial) {
 function exitPlayer() {
   // 途中終了：進んだ分を記録するか確認
   clearInterval(player.timer);
-  stopMusic();
   if (player.doneSteps > 0 || player.idx > 0) {
     finishPlayer(true);
   } else {
+    stopBGM();
     $("#player").classList.remove("active");
   }
 }
@@ -303,72 +371,158 @@ function celebrate() {
   if (navigator.vibrate) navigator.vibrate([60, 40, 60, 40, 120]);
 }
 
-/* ---------- リラックス音楽（ブラウザ内で生成。著作権フリー・通信不要） ----------
-   穏やかな和音パッドを呼吸のようにゆっくり揺らす環境音。 */
-let musicNodes = null;
-function startMusic() {
-  if (!settings.music || musicNodes) return;
-  const ctx = ensureAudio();
-  if (!ctx) return;
-  try {
-    const now = ctx.currentTime;
+/* ============================================================
+   BGM（mp3再生）
+   - デフォルト2曲 or 自分のリスト（IndexedDBに保存）を順に再生
+   - 開始で1曲目から、種目が全部終わったらフェードアウト停止
+   - リスト合計が15分に満たなければ1曲目から繰り返し
+   ============================================================ */
+const DEFAULT_BGM = [
+  { name: "Soft Focus 1", src: "bgm/soft-focus-1.mp3" },
+  { name: "Soft Focus 2", src: "bgm/soft-focus-3.mp3" },
+];
+const BGM_VOL = 0.85;
 
-    const master = ctx.createGain();
-    master.gain.setValueAtTime(0.0001, now);
-    master.gain.linearRampToValueAtTime(0.16, now + 3); // ふわっとフェードイン（スマホ向けに音量UP）
-
-    // スマホの小型スピーカーでも聞こえるよう、低音は控えめ・中音域中心に
-    const filter = ctx.createBiquadFilter();
-    filter.type = "lowpass";
-    filter.frequency.value = 2200;
-    filter.connect(master);
-    master.connect(ctx.destination);
-
-    // Cメジャー系の落ち着いた和音を中音域で（C4 E4 G4 C5）→スマホでも明瞭
-    const freqs = [261.63, 329.63, 392.00, 523.25];
-    const nodes = [];
-    freqs.forEach((f, i) => {
-      const o = ctx.createOscillator();
-      o.type = i % 2 ? "sine" : "triangle";
-      o.frequency.value = f;
-      const g = ctx.createGain();
-      g.gain.value = 0.16 - i * 0.02;
-      // 呼吸のようなゆっくりした音量の揺らぎ
-      const lfo = ctx.createOscillator();
-      lfo.frequency.value = 0.06 + i * 0.013;
-      const lfoGain = ctx.createGain();
-      lfoGain.gain.value = 0.06;
-      lfo.connect(lfoGain); lfoGain.connect(g.gain);
-      o.connect(g); g.connect(filter);
-      o.start(now); lfo.start(now);
-      nodes.push(o, lfo);
+/* ---- IndexedDB（アップロード曲の本体を保存） ---- */
+const IDB = {
+  _db: null,
+  open() {
+    return new Promise((res, rej) => {
+      if (this._db) return res(this._db);
+      const req = indexedDB.open("nightore-bgm", 1);
+      req.onupgradeneeded = () => { if (!req.result.objectStoreNames.contains("tracks")) req.result.createObjectStore("tracks", { keyPath: "id" }); };
+      req.onsuccess = () => { this._db = req.result; res(this._db); };
+      req.onerror = () => rej(req.error);
     });
-    musicNodes = { master, nodes };
-  } catch {}
+  },
+  async put(track) { const db = await this.open(); return new Promise((res, rej) => { const tx = db.transaction("tracks", "readwrite"); tx.objectStore("tracks").put(track); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); },
+  async get(id) { const db = await this.open(); return new Promise((res, rej) => { const r = db.transaction("tracks", "readonly").objectStore("tracks").get(id); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); },
+  async del(id) { const db = await this.open(); return new Promise((res, rej) => { const tx = db.transaction("tracks", "readwrite"); tx.objectStore("tracks").delete(id); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); },
+};
+
+let bgmAudio = null;       // HTMLAudioElement
+let bgmPlaylist = [];      // [{name, src, obj?:bool}]
+let bgmIndex = 0;
+let bgmFadeTimer = null;
+
+async function buildPlaylist() {
+  if (settings.bgmSource === "custom" && bgmList.length) {
+    const arr = [];
+    for (const item of bgmList) {
+      try { const t = await IDB.get(item.id); if (t && t.blob) arr.push({ name: item.name, src: URL.createObjectURL(t.blob), obj: true }); } catch {}
+    }
+    if (arr.length) return arr;
+  }
+  return DEFAULT_BGM.map(d => ({ ...d })); // customが空ならデフォルトにフォールバック
 }
-function stopMusic() {
-  if (!musicNodes) return;
-  try {
-    const { master, nodes } = musicNodes;
-    const now = audioCtx.currentTime;
-    master.gain.cancelScheduledValues(now);
-    master.gain.setValueAtTime(master.gain.value, now);
-    master.gain.linearRampToValueAtTime(0.0001, now + 1.2); // ふわっとフェードアウト
-    nodes.forEach(n => { try { n.stop(now + 1.4); } catch {} });
-  } catch {}
-  musicNodes = null;
+async function startBGM() {
+  if (!settings.music) return;
+  stopBGMImmediate();
+  bgmPlaylist = await buildPlaylist();
+  if (!bgmPlaylist.length) return;
+  bgmIndex = 0;
+  if (!bgmAudio) { bgmAudio = new Audio(); bgmAudio.addEventListener("ended", onBgmEnded); }
+  playBgmCurrent(true);
+}
+function playBgmCurrent(fadeIn) {
+  const tr = bgmPlaylist[bgmIndex];
+  if (!tr) return;
+  bgmAudio.src = tr.src;
+  bgmAudio.volume = fadeIn ? 0 : BGM_VOL;
+  const p = bgmAudio.play();
+  if (p && p.catch) p.catch(() => {});
+  if (fadeIn) fadeAudioTo(BGM_VOL, 2500);
+}
+function onBgmEnded() {
+  if (!bgmPlaylist.length) return;
+  bgmIndex = (bgmIndex + 1) % bgmPlaylist.length; // 最後まで来たら1曲目に戻ってリピート
+  playBgmCurrent(false);
+}
+function pauseBGM() { if (bgmAudio) try { bgmAudio.pause(); } catch {} }
+function resumeBGM() { if (settings.music && bgmAudio && bgmAudio.src) { const p = bgmAudio.play(); if (p && p.catch) p.catch(() => {}); } }
+function stopBGM() { // フェードアウトしてから停止
+  if (!bgmAudio || !bgmPlaylist.length) { stopBGMImmediate(); return; }
+  fadeAudioTo(0, 2000, stopBGMImmediate);
+}
+function stopBGMImmediate() {
+  if (bgmFadeTimer) { clearInterval(bgmFadeTimer); bgmFadeTimer = null; }
+  if (bgmAudio) try { bgmAudio.pause(); } catch {}
+  bgmPlaylist.forEach(t => { if (t.obj && t.src.startsWith("blob:")) URL.revokeObjectURL(t.src); });
+  bgmPlaylist = [];
+}
+function fadeAudioTo(target, ms, done) {
+  if (!bgmAudio) { if (done) done(); return; }
+  if (bgmFadeTimer) clearInterval(bgmFadeTimer);
+  const start = bgmAudio.volume, steps = Math.max(1, Math.round(ms / 50));
+  let i = 0;
+  bgmFadeTimer = setInterval(() => {
+    i++;
+    bgmAudio.volume = Math.min(1, Math.max(0, start + (target - start) * (i / steps)));
+    if (i >= steps) { clearInterval(bgmFadeTimer); bgmFadeTimer = null; if (done) done(); }
+  }, 50);
 }
 function updateMusicBtn() {
   const b = $("#p-music");
   if (b) b.textContent = settings.music ? "🎵" : "🔇";
 }
-function toggleMusic() {
+function toggleMusic() { // プレイヤー上の🎵ボタン
   settings.music = !settings.music;
   store.set(LS.settings, settings);
   updateMusicBtn();
   if ($("#set-music")) $("#set-music").checked = settings.music;
-  if (settings.music && !player.paused && $("#player").classList.contains("active")) startMusic();
-  else stopMusic();
+  if (settings.music && !player.paused && $("#player").classList.contains("active")) startBGM();
+  else stopBGMImmediate();
+}
+
+/* ---- BGMリストの追加・削除 ---- */
+async function addBgmFiles(fileList) {
+  const files = [...fileList].filter(f => f.type.startsWith("audio/") || /\.(mp3|m4a|aac|ogg|wav)$/i.test(f.name));
+  for (const f of files) {
+    if (bgmList.length >= 10) { showToast("BGMは最大10曲までです"); break; }
+    const id = (crypto.randomUUID ? crypto.randomUUID() : "id" + Date.now() + Math.random());
+    const name = f.name.replace(/\.[^.]+$/, "");
+    try {
+      await IDB.put({ id, name, blob: f });
+      bgmList.push({ id, name });
+    } catch { showToast("保存に失敗しました（容量不足の可能性）"); }
+  }
+  store.set(LS.bgm, bgmList);
+  renderBgmList();
+}
+async function deleteBgm(id) {
+  bgmList = bgmList.filter(x => x.id !== id);
+  store.set(LS.bgm, bgmList);
+  try { await IDB.del(id); } catch {}
+  renderBgmList();
+}
+
+/* ---- 並び替え（ポインタ・ドラッグ：タッチ対応） ---- */
+function attachDragHandle(row) {
+  const handle = row.querySelector(".handle");
+  handle.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    const list = $("#bgm-list");
+    row.classList.add("dragging");
+    handle.setPointerCapture(e.pointerId);
+    const onMove = ev => {
+      const rows = [...list.querySelectorAll(".bgm-row:not(.dragging)")];
+      const after = rows.find(r => ev.clientY < r.getBoundingClientRect().top + r.offsetHeight / 2);
+      if (after) list.insertBefore(row, after);
+      else list.appendChild(row);
+    };
+    const onUp = () => {
+      handle.removeEventListener("pointermove", onMove);
+      handle.removeEventListener("pointerup", onUp);
+      row.classList.remove("dragging");
+      // DOMの並びを配列へ反映
+      const ids = [...list.querySelectorAll(".bgm-row")].map(r => r.dataset.id);
+      bgmList.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+      store.set(LS.bgm, bgmList);
+      renderBgmList();
+    };
+    handle.addEventListener("pointermove", onMove);
+    handle.addEventListener("pointerup", onUp);
+  });
 }
 
 /* ---------- トースト ---------- */
@@ -399,7 +553,7 @@ function scheduleReminder() {
   reminderTimeout = setTimeout(() => {
     if (!log[todayKey()]) {
       try {
-        new Notification("そろそろ体を動かす時間です 🧘", { body: "10分だけでもOK。アプリを開いて始めよう！", icon: "icons/icon.svg" });
+        new Notification("そろそろストレッチの時間です 🌙", { body: "10分だけでもOK。ナイトレを開いて始めよう！", icon: "icons/icon-192.png" });
       } catch {}
     }
     scheduleReminder(); // 翌日分を再セット
@@ -448,8 +602,18 @@ function init() {
 
   // 設定
   $("#set-time").onchange = e => { settings.reminderTime = e.target.value; store.set(LS.settings, settings); scheduleReminder(); showToast("リマインド時刻を保存"); };
-  $("#set-default").onchange = e => { settings.defaultRoutine = e.target.value; store.set(LS.settings, settings); };
-  $("#set-music").onchange = e => { settings.music = e.target.checked; store.set(LS.settings, settings); updateMusicBtn(); if (!settings.music) stopMusic(); showToast(settings.music ? "音楽をオンにしました" : "音楽をオフにしました"); };
+  $("#set-music").onchange = e => { settings.music = e.target.checked; store.set(LS.settings, settings); updateMusicBtn(); if (!settings.music) stopBGMImmediate(); showToast(settings.music ? "BGMをオンにしました" : "BGMをオフにしました"); };
+
+  // BGM: 使う曲の切り替え
+  $("#bgm-src-default").onclick = () => { settings.bgmSource = "default"; store.set(LS.settings, settings); renderBgmSettings(); };
+  $("#bgm-src-custom").onclick = () => { settings.bgmSource = "custom"; store.set(LS.settings, settings); renderBgmSettings(); };
+  // BGM: 追加・ファイル選択
+  $("#bgm-add").onclick = () => $("#bgm-file").click();
+  $("#bgm-file").onchange = e => { if (e.target.files && e.target.files.length) addBgmFiles(e.target.files); e.target.value = ""; };
+
+  // リワード・ポップアップを閉じる
+  $("#reward-ok").onclick = () => $("#reward-modal").classList.remove("active");
+  $("#reward-modal").onclick = e => { if (e.target.id === "reward-modal") $("#reward-modal").classList.remove("active"); };
   $("#set-notify").onchange = async e => {
     if (e.target.checked) {
       const ok = await requestNotify();
